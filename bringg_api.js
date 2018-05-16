@@ -15,12 +15,10 @@ module.exports = {
             name: name,
             address: address,
             phone: phone,
-            email: email,
-            timestamp: Date.now(),
-            access_token: ACCESS_TOKEN
+            email: email
         };
 
-        sendRequestToBringg(params, 'customers', callback);
+        sendPostRequestToBringg(params, 'customers', callback);
     },
     createTask: function(customer, title, note, callback){
 
@@ -32,19 +30,24 @@ module.exports = {
             "lat": 12.9715987,
             "lng": 77.5945627,
             "note": note,
-            scheduled_at: Date.now(),
-            timestamp: Date.now(),
-            access_token: ACCESS_TOKEN
+            scheduled_at: Date.now()
         };
-        sendRequestToBringg(task, 'tasks', callback);
+        sendPostRequestToBringg(task, 'tasks', callback);
 
 
+    },
+    getTasks: function (company, page, callback) {
+        var params = {
+            company_id: company,
+            page: page
+        };
+
+        sendGetRequestToBringg(params, 'tasks', callback);
     }
 
 };
 
-function makeQueryParams(params){
-
+function objToUrlquery(params){
     var query_params = '';
     for (var key in params) {
         var value = params[key];
@@ -55,10 +58,18 @@ function makeQueryParams(params){
     }
     return query_params;
 }
-function sendRequestToBringg(params, route, callback){
-    let query_url = makeQueryParams(params);
 
-    params.signature = CryptoJS.HmacSHA1(query_url, SECRET).toString();
+function addSignature(params){
+    params.access_token = ACCESS_TOKEN;
+    params.timestamp = Date.now();
+
+    let query_params = objToUrlquery(params);
+
+    params.signature = CryptoJS.HmacSHA1(query_params, SECRET).toString();
+    return params;
+}
+function sendPostRequestToBringg(params, route, callback){
+    params = addSignature(params);
 
     console.log('runnning post to Bringg');
 
@@ -75,5 +86,22 @@ function sendRequestToBringg(params, route, callback){
         callback(error, response, body);
     });
 
+};
+function sendGetRequestToBringg(params, route, callback){
+    params = addSignature(params);
+
+    console.log('runnning get to Bringg');
+
+    console.log(JSON.stringify(params));
+    request.get({
+        headers: {'Content-type': 'application/json'},
+        url: `https://developer-api.bringg.com/partner_api/${route}?${objToUrlquery(params)}`
+    }, function (error, response, body){
+        if(error){
+            console.log('error %j', error);
+        }
+        console.log('response: ', body);
+        callback(error, response, body);
+    });
 
 };

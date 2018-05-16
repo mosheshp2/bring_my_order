@@ -46,6 +46,20 @@ app.post('/api/order', function (req, res) {
 
 });
 
+app.get('/api/tasks', function(req, res){
+
+    var company = req.query.company || 11010,
+        page = req.query.page || 1;
+    bringgApi.getTasks(company, page, function(error, resp, data){
+        if(error){
+            return res.status(500).send(error);
+        }
+        res.send(data);
+
+
+    });
+
+});
 
 app.use(bodyParser.text());
 
