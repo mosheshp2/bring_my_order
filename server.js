@@ -19,6 +19,8 @@ app.post('/api/order', function (req, res) {
     let address = req.query.address;
     let email = req.query.email || '';
     let details = req.query.details || '';
+    let title = req.query.title || '';
+    let note = req.query.note || '';
 
     if(!name || !cellNumber || ! address) {
         return res.status(500).send('Please specify the following details: name, number, and address for pickup.');
@@ -31,8 +33,15 @@ app.post('/api/order', function (req, res) {
             if(err){
                 return res.status(500).send(err);
             }
+            bringgApi.createTask(JSON.parse(data).customer, title, note, function(error2, resp, data2) {
+                if(error2){
+                    return res.status(500).send(error2);
+                }
+                res.send(data2);
 
-            res.send(data);
+            } );
+
+
         });
 
 });

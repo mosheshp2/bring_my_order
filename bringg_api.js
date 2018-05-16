@@ -20,7 +20,25 @@ module.exports = {
             access_token: ACCESS_TOKEN
         };
 
-        sendRequestToBringg(params, callback);
+        sendRequestToBringg(params, 'customers', callback);
+    },
+    createTask: function(customer, title, note, callback){
+
+        var task = {
+            company_id: customer.company_id,
+            customer_id: customer.id,
+            title: title,
+            address: customer.address,
+            "lat": 12.9715987,
+            "lng": 77.5945627,
+            "note": note,
+            scheduled_at: Date.now(),
+            timestamp: Date.now(),
+            access_token: ACCESS_TOKEN
+        };
+        sendRequestToBringg(task, 'tasks', callback);
+
+
     }
 
 };
@@ -37,16 +55,17 @@ function makeQueryParams(params){
     }
     return query_params;
 }
-function sendRequestToBringg(params, callback){
+function sendRequestToBringg(params, route, callback){
     let query_url = makeQueryParams(params);
 
     params.signature = CryptoJS.HmacSHA1(query_url, SECRET).toString();
+
     console.log('runnning post to Bringg');
 
     console.log(JSON.stringify(params));
     request.post({
         headers: {'Content-type': 'application/json'},
-        url: 'https://developer-api.bringg.com/partner_api/customers',
+        url: 'https://developer-api.bringg.com/partner_api/' + route,
         body: JSON.stringify(params)
     }, function (error, response, body){
         if(error){
