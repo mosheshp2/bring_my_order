@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 
 
 var dataStore = require('./data_store');
+var bringgApi = require('./bringg_api');
 
 
 app.get('/', function(req, res){
@@ -16,6 +17,7 @@ app.post('/api/order', function (req, res) {
     let name = req.query.name;
     let cellNumber = req.query.number;
     let address = req.query.address;
+    let email = req.query.email || '';
     let details = req.query.details || '';
 
     if(!name || !cellNumber || ! address) {
@@ -24,7 +26,15 @@ app.post('/api/order', function (req, res) {
 
     let order_id = dataStore.saveOrder(name, cellNumber, address, details);
 
-    res.send(`Order: ${order_id} saved.`);
+    bringgApi.createCustomer(name, cellNumber, address, email,
+        function(err, response, data) {
+            if(err){
+                return res.status(500).send(err);
+            }
+
+            res.send(data);
+        });
+
 });
 
 
